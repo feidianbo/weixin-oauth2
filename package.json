@@ -1,0 +1,25 @@
+{
+  "name": "weixin-oauth2",
+  "version": "1.0.0",
+  "description": "微信公众平台网页授权获取用户基本信息接口封装",
+  "main": "index.js",
+  "dependencies": {
+    "request": "^2.64.0"
+  },
+  "devDependencies": {
+    "babel": "^5.8.23",
+    "chai": "^3.3.0",
+    "mocha": "^2.3.3",
+    "nock": "^2.13.0"
+  },
+  "scripts": {
+    "test": "mocha",
+    "build": "babel --out-dir dist/ src/"
+  },
+  "keywords": [
+    "wechat",
+    "weixin"
+  ],
+  "author": "Min Chen",
+  "license": "MIT"
+}
