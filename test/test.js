@@ -63,12 +63,6 @@ describe('WeChatOAuth2', function() {
     describe('#_refreshAccessToken', function() {
         describe('when refresh_token is invalid', function() {
             before(function () {
-                nock('https://api.weixin.qq.com', { allowUnmocked: true })
-                .get('/')
-                .reply(200);
-            });
-
-            after(function () {
                 nock.cleanAll();
             });
 
