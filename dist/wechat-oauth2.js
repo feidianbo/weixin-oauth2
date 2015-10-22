@@ -105,7 +105,19 @@ var WeChatOAuth2 = (function () {
         }
     }, {
         key: '_verifyAccessToken',
-        value: function _verifyAccessToken() {}
+        value: function _verifyAccessToken(openid, accessToken, callback) {
+            var url = 'https://api.weixin.qq.com/sns/auth';
+            var info = {
+                access_token: accessToken,
+                openid: openid
+            };
+
+            request({
+                url: url,
+                qs: info,
+                json: true
+            }, errHandlerWrapper(callback));
+        }
 
         /* 对外接口 */
 

@@ -100,4 +100,41 @@ describe('WeChatOAuth2', function() {
             });
         });
     });
+
+    describe('$_verifyAccessToken', function () {
+        describe('when AccessToken is invalid', function () {
+            before(function () {
+                nock.cleanAll();
+            });
+
+            it('should handle exceptions', function(done) {
+                auth._verifyAccessToken('openid', 'token', function (err, body) {
+                    err.should.exist;
+                    err.name.should.equal('WeChatAPIError');
+                    err.message.should.contain('invalid');
+                    done();
+                });
+            });
+        });
+
+        describe('when AccessToken is valid', function () {
+            before(function() {
+                nock('https://api.weixin.qq.com')
+                .get('/sns/auth')
+                .query(true)
+                .reply(200, {
+                    "errcode": 0,
+                    "errmsg": "ok"
+                });
+            });
+
+            it('should return data', function(done) {
+                auth._verifyAccessToken('openid', 'token', function (err, res, body) {
+                    should.not.exist(err);
+                    body.should.have.property('errmsg').and.equal('ok');
+                    done();
+                });
+            });
+        });
+    });
 });

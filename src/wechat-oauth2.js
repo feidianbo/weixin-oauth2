@@ -81,7 +81,18 @@ class WeChatOAuth2 {
         }, errHandlerWrapper(processToken(this, callback)));
     }
 
-    _verifyAccessToken() {
+    _verifyAccessToken(openid, accessToken, callback) {
+        let url = 'https://api.weixin.qq.com/sns/auth';
+        let info = {
+          access_token: accessToken,
+          openid: openid
+        };
+
+        request({
+            url,
+            qs: info,
+            json: true
+        }, errHandlerWrapper(callback));
     }
 
     /* 对外接口 */
