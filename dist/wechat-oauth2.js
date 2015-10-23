@@ -118,6 +118,21 @@ var WeChatOAuth2 = (function () {
                 json: true
             }, errHandlerWrapper(callback));
         }
+    }, {
+        key: '_getUser',
+        value: function _getUser(openid, accessToken, callback) {
+            var url = 'https://api.weixin.qq.com/sns/userinfo';
+            var info = {
+                access_token: accessToken,
+                openid: openid,
+                lang: 'zh_CN'
+            };
+            request({
+                url: url,
+                qs: info,
+                json: true
+            }, errHandlerWrapper(callback));
+        }
 
         /* 对外接口 */
 
@@ -139,10 +154,33 @@ var WeChatOAuth2 = (function () {
         }
     }, {
         key: 'getUserInfo',
-        value: function getUserInfo() {}
+        value: function getUserInfo(code, callback) {
+            var that = this;
+
+            // TODO 缓存accessToken?
+            this._getAccessToken(code, function (err, res) {
+                if (err) {
+                    callback(err);
+                } else {
+                    that._getUser(res.data.openid, res.data.access_token, function (err, response, body) {
+                        if (err) {
+                            callback(err);
+                        } else {
+                            callback(null, body);
+                        }
+                    });
+                }
+            });
+        }
     }, {
         key: 'getUserBase',
-        value: function getUserBase() {}
+        value: function getUserBase(code, callback) {
+            var that = this;
+
+            this._getAccessToken(code, function (err, res) {
+                if (err) callback(err);else callback(null, { "openid": res.data.openid });
+            });
+        }
     }]);
 
     return WeChatOAuth2;

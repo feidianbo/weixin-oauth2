@@ -101,7 +101,7 @@ describe('WeChatOAuth2', function() {
         });
     });
 
-    describe('$_verifyAccessToken', function () {
+    describe('#_verifyAccessToken', function () {
         describe('when AccessToken is invalid', function () {
             before(function () {
                 nock.cleanAll();
@@ -132,6 +132,47 @@ describe('WeChatOAuth2', function() {
                 auth._verifyAccessToken('openid', 'token', function (err, res, body) {
                     should.not.exist(err);
                     body.should.have.property('errmsg').and.equal('ok');
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#_getUserInfo', function () {
+        describe('when code is valid', function () {
+            before(function () {
+                nock('https://api.weixin.qq.com')
+                .get('/sns/oauth2/access_token')
+                .query(true)
+                .reply(200, {
+                    "access_token":"ACCESS_TOKEN",
+                    "expires_in":7200,
+                    "refresh_token":"REFRESH_TOKEN",
+                    "openid":"OPENID",
+                    "scope":"SCOPE"
+                })
+                .get('/sns/userinfo')
+                .query({
+                    "access_token": "ACCESS_TOKEN",
+                    "openid": "OPENID",
+                    "lang": "zh_CN"
+                })
+                .reply(200, {
+                    "openid":" OPENID",
+                    "nickname": "NICKNAME",
+                    "sex":"1",
+                    "province":"PROVINCE",
+                    "city":"CITY",
+                    "country":"COUNTRY",
+                     "headimgurl": "http://wx.qlogo.cn/mmopen/g3MonUZtNHkdmzicIlibx6iaFqAc56vxLSUfpb6n5WKSYVY0ChQKkiaJSgQ1dZuTOgvLLrhJbERQQ4eMsv84eavHiaiceqxibJxCfHe/46",
+                     "privilege":[ "PRIVILEGE1", "PRIVILEGE2" ]
+                });
+            });
+
+            it('should return data', function (done) {
+                auth.getUserInfo('code', function (err, user) {
+                    should.not.exist(err);
+                    user.should.have.property('nickname').and.equal('NICKNAME');
                     done();
                 });
             });
