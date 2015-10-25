@@ -20,7 +20,7 @@ describe('WeChatOAuth2', function() {
     describe('#_getAccessToken', function() {
         describe('when code is invalid', function() {
             it('should handle exceptions', function(done) {
-                auth._getAccessToken('code', function (err, body) {
+                auth._getAccessToken('code', function (err, res, body) {
                     err.should.exist;
                     err.name.should.equal('WeChatAPIError');
                     err.message.should.contain('invalid code');
@@ -50,7 +50,7 @@ describe('WeChatOAuth2', function() {
             });
 
             it('should return data', function(done) {
-                auth._getAccessToken('code', function (err, body) {
+                auth._getAccessToken('code', function (err, res, body) {
                     should.not.exist(err);
                     body.should.have.property('data');
                     body.data.should.have.keys('access_token', 'expires_in', 'refresh_token', 'openid', 'scope', 'create_at');
@@ -67,7 +67,7 @@ describe('WeChatOAuth2', function() {
             });
 
             it('should handle exceptions', function(done) {
-                auth._refreshAccessToken('refresh', function (err, body) {
+                auth._refreshAccessToken('refresh', function (err, res, body) {
                     err.should.exist;
                     err.name.should.equal('WeChatAPIError');
                     err.message.should.contain('invalid refresh_token');
@@ -91,7 +91,7 @@ describe('WeChatOAuth2', function() {
             });
 
             it('should return data', function(done) {
-                auth._refreshAccessToken('refresh', function (err, body) {
+                auth._refreshAccessToken('refresh', function (err, res, body) {
                     should.not.exist(err);
                     body.should.have.property('data');
                     body.data.should.have.keys('access_token', 'expires_in', 'refresh_token', 'openid', 'scope', 'create_at');
@@ -108,7 +108,7 @@ describe('WeChatOAuth2', function() {
             });
 
             it('should handle exceptions', function(done) {
-                auth._verifyAccessToken('openid', 'token', function (err, body) {
+                auth._verifyAccessToken('openid', 'token', function (err, res, body) {
                     err.should.exist;
                     err.name.should.equal('WeChatAPIError');
                     err.message.should.contain('invalid');

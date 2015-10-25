@@ -96,8 +96,8 @@ class WeChatOAuth2 {
     }
 
     _getUser(openid, accessToken, callback) {
-        var url = 'https://api.weixin.qq.com/sns/userinfo';
-        var info = {
+        let url = 'https://api.weixin.qq.com/sns/userinfo';
+        let info = {
           access_token: accessToken,
           openid: openid,
           lang: 'zh_CN'
@@ -127,11 +127,11 @@ class WeChatOAuth2 {
         var that = this;
 
         // TODO 缓存accessToken?
-        this._getAccessToken(code, function (err, res) {
+        this._getAccessToken(code, function (err, res, body) {
             if (err) {
                 callback(err);
             } else {
-                that._getUser(res.data.openid, res.data.access_token, function (err, response, body) {
+                that._getUser(body.data.openid, body.data.access_token, function (err, res, body) {
                     if (err) {
                         callback(err);
                     } else {
@@ -160,7 +160,7 @@ class WeChatOAuth2 {
 function processToken(context, callback) {
     return function (err, res, body) {
         if (err) {
-            return callback(err, body);
+            return callback(err, res, body);
         }
 
         // 记录token的获取时间
@@ -168,7 +168,7 @@ function processToken(context, callback) {
 
         // 存储token
         context.setToken(body.openid, body, function (err) {
-            callback(err, new AccessToken(body));
+            callback(err, res, new AccessToken(body));
         });
     };
 }
