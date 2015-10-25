@@ -138,7 +138,7 @@ describe('WeChatOAuth2', function() {
         });
     });
 
-    describe('#_getUserInfo', function () {
+    describe('#getUserInfo', function () {
         describe('when code is valid', function () {
             before(function () {
                 nock('https://api.weixin.qq.com')
@@ -173,6 +173,31 @@ describe('WeChatOAuth2', function() {
                 auth.getUserInfo('code', function (err, user) {
                     should.not.exist(err);
                     user.should.have.property('nickname').and.equal('NICKNAME');
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#getUserBase', function () {
+        describe('when code is valid', function () {
+            before(function () {
+                nock('https://api.weixin.qq.com')
+                .get('/sns/oauth2/access_token')
+                .query(true)
+                .reply(200, {
+                    "access_token":"ACCESS_TOKEN",
+                    "expires_in":7200,
+                    "refresh_token":"REFRESH_TOKEN",
+                    "openid":"OPENID",
+                    "scope":"SCOPE"
+                });
+            });
+
+            it('should return data', function (done) {
+                auth.getUserBase('code', function (err, user_base) {
+                    should.not.exist(err);
+                    user_base.should.have.property('openid').and.equal('OPENID');
                     done();
                 });
             });
