@@ -120,16 +120,41 @@ var WeChatOAuth2 = (function () {
         }
     }, {
         key: '_getUser',
-        value: function _getUser(openid, accessToken, callback) {
+        value: function _getUser(openid, callback) {
+            var _this2 = this;
+
             var url = 'https://api.weixin.qq.com/sns/userinfo';
-            var info = {
-                access_token: accessToken,
+            var options = {
                 openid: openid,
                 lang: 'zh_CN'
             };
+
+            this.getToken(openid, function (err, token) {
+                if (err) {
+                    return callback(err);
+                }
+                if (token) {
+                    if (token.valid) {
+                        options.access_token = token.data.access_token;
+                    } else {
+                        _this2._refreshAccessToken(token.data.refresh_token, function (err, res, body) {
+                            if (err) {
+                                return callback(err);
+                            } else {
+                                options.access_token = body.data.access_token;
+                            }
+                        });
+                    }
+                } else {
+                    var error = new Error('Token for ' + openid + ' is not found.');
+                    error.name = 'Unauthorized';
+                    return callback(error);
+                }
+            });
+
             request({
                 url: url,
-                qs: info,
+                qs: options,
                 json: true
             }, errHandlerWrapper(callback));
         }
@@ -162,7 +187,7 @@ var WeChatOAuth2 = (function () {
                 if (err) {
                     callback(err);
                 } else {
-                    that._getUser(body.data.openid, body.data.access_token, function (err, res, body) {
+                    that._getUser(body.data.openid, function (err, res, body) {
                         if (err) {
                             callback(err);
                         } else {
@@ -177,8 +202,8 @@ var WeChatOAuth2 = (function () {
         value: function getUserBase(code, callback) {
             var that = this;
 
-            this._getAccessToken(code, function (err, res) {
-                if (err) callback(err);else callback(null, { "openid": res.data.openid });
+            this._getAccessToken(code, function (err, res, body) {
+                if (err) callback(err);else callback(null, { "openid": body.data.openid });
             });
         }
     }]);
@@ -196,8 +221,9 @@ function processToken(context, callback) {
         body.create_at = new Date().getTime();
 
         // 存储token
-        context.setToken(body.openid, body, function (err) {
-            callback(err, res, new AccessToken(body));
+        var token = new AccessToken(body);
+        context.setToken(body.openid, token, function (err) {
+            callback(err, res, token);
         });
     };
 }

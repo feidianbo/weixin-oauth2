@@ -95,16 +95,41 @@ class WeChatOAuth2 {
         }, errHandlerWrapper(callback));
     }
 
-    _getUser(openid, accessToken, callback) {
+    _getUser(openid, callback) {
         let url = 'https://api.weixin.qq.com/sns/userinfo';
-        let info = {
-          access_token: accessToken,
+        let options = {
           openid: openid,
           lang: 'zh_CN'
         };
+
+        this.getToken(openid, (err, token) => {
+            if (err) {
+                return callback(err);
+            }
+            if (token) {
+                if (token.valid) {
+                    options.access_token = token.data.access_token;
+                } else {
+                    this._refreshAccessToken(
+                        token.data.refresh_token,
+                        (err, res, body) => {
+                            if (err) {
+                                return callback(err);
+                            } else {
+                                options.access_token = body.data.access_token;
+                            }
+                        });
+                }
+            } else {
+                let error = new Error(`Token for ${openid} is not found.`);
+                error.name = 'Unauthorized';
+                return callback(error);
+            }
+        });
+
         request({
             url,
-            qs: info,
+            qs: options,
             json: true
         }, errHandlerWrapper(callback));
     }
@@ -127,11 +152,11 @@ class WeChatOAuth2 {
         var that = this;
 
         // TODO 缓存accessToken?
-        this._getAccessToken(code, function (err, res, body) {
+        this._getAccessToken(code, (err, res, body) => {
             if (err) {
                 callback(err);
             } else {
-                that._getUser(body.data.openid, body.data.access_token, function (err, res, body) {
+                that._getUser(body.data.openid, (err, res, body) => {
                     if (err) {
                         callback(err);
                     } else {
@@ -145,11 +170,11 @@ class WeChatOAuth2 {
     getUserBase(code, callback) {
         var that = this;
 
-        this._getAccessToken(code, function (err, res) {
+        this._getAccessToken(code, (err, res, body) => {
             if (err)
                 callback(err);
             else
-                callback(null, { "openid": res.data.openid });
+                callback(null, { "openid": body.data.openid });
         });
     }
 }
@@ -167,15 +192,16 @@ function processToken(context, callback) {
         body.create_at = new Date().getTime();
 
         // 存储token
-        context.setToken(body.openid, body, function (err) {
-            callback(err, res, new AccessToken(body));
+        var token = new AccessToken(body);
+        context.setToken(body.openid, token, err => {
+            callback(err, res, token);
         });
     };
 }
 
 var errHandlerWrapper = function (callback) {
     return function (err, res, body) {
-        callback = callback || function () {};
+        callback = callback || () => {};
         if (err) {
             err.name = 'WeChatAPI' + err.name;
             return callback(err, res, body);
